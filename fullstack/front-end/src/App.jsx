@@ -14,7 +14,7 @@ function App() {
         console.error("error", err);
       });
   }, []);
-
+  
   return (
     <>
       {data.map((data, index) => (
