@@ -1,0 +1,16 @@
+{
+  "name": "datamodeling",
+  "version": "1.0.0",
+  "description": "we are going to make data modeling ",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "waseem malik",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongoose": "^8.4.4"
+  }
+}
