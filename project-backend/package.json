@@ -1,0 +1,26 @@
+{
+  "name": "project-backend",
+  "version": "1.0.0",
+  "description": "from here we are going to start the project fof javascript backend ",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wcoder547/js_backend.git"
+  },
+  "author": "waseem akram",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Wcoder547/js_backend/issues"
+  },
+  "homepage": "https://github.com/Wcoder547/js_backend#readme",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
