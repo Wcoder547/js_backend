@@ -4,7 +4,20 @@ import express from "express";
 const app = express();
 
 import connectDb from "./db/index.js";
-connectDb();
+connectDb()
+  .then(() => {
+    app.on("Erorr", (err) => {
+      console.err("Error:", err);
+      throw err;
+    });
+
+    app.listen(process.env.PORT || 8000, () => {
+      console.log(`Server is running on PORT:${process.env.PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log("MONGO DB CONNECTION FAILED !! ", err);
+  });
 
 // import { DB_NAME } from "./constans";
 // (async () => {
