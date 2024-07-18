@@ -25,16 +25,25 @@ const userRegister = AsyncHandler(async (req, res) => {
   ) {
     throw new ApiError(400, "All fields are required");
   }
-  const exsistedUser = User.findOne({
+  const exsistedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
   if (exsistedUser) {
     throw new ApiError(409, "User Already Exsisted.Please Login");
   }
+  //   console.log(req.files);
   const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverLocalPath = req.files?.coverimage[0]?.path;
+  //   const coverLocalPath = req.files?.coverimage[0]?.path;
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required!!");
+  }
+  let coverLocalPath;
+  if (
+    req.files &&
+    Array.isArray(req.files.coverimage) &&
+    req.files.coverimage.length > 0
+  ) {
+    coverLocalPath = req.files.coverimage[0].path;
   }
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   const coverimage = await uploadOnCloudinary(coverLocalPath);
@@ -47,9 +56,9 @@ const userRegister = AsyncHandler(async (req, res) => {
     email,
     password,
     avatar: avatar.url,
-    coverimage: coverimage.url || "",
+    coverimage: coverimage?.url || " ",
   });
-  const createdUser = user.findById(user._id).select("-password -refreshtoken");
+  const createdUser = User.findById(user._id).select("-password -refreshtoken");
   if (!createdUser) {
     throw new ApiError(500, "Internal Server Error");
   }
