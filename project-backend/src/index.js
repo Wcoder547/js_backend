@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config({ path: "./env" });
-import express from "express";
-const app = express();
+import { app } from "./app.js";
 
 import connectDb from "./db/index.js";
 connectDb()
@@ -18,6 +17,14 @@ connectDb()
   .catch((err) => {
     console.log("MONGO DB CONNECTION FAILED !! ", err);
   });
+
+//routes imports
+
+import userRouter from "./routes/user.routes.js";
+
+//user routes
+
+app.use("/api/v1/users", userRouter);
 
 // import { DB_NAME } from "./constans";
 // (async () => {
