@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
-import jwt from "json-web-token";
+import jwt from "jsonwebtoken";
 
 const userSchema = new Schema(
   {
@@ -49,8 +49,8 @@ const userSchema = new Schema(
 );
 
 userSchema.pre("save", async function (next) {
-  console.log("hello");
-  if (!this.isModified("passowrd")) return next();
+  // console.log("hello");
+  if (!this.isModified("password")) return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
@@ -60,8 +60,9 @@ userSchema.pre("save", async function (next) {
     next(err);
   }
 });
-userSchema.methods.isPasswordCorrect = async function (passowrd) {
-  return await bcrypt.compare(passowrd, this.passowrd);
+
+userSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password);
 };
 
 userSchema.methods.generateAccessToken = function () {
@@ -74,7 +75,7 @@ userSchema.methods.generateAccessToken = function () {
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresin: process.env.ACCESS_TOKEN_EXPIRY,
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
     }
   );
 };
@@ -86,7 +87,7 @@ userSchema.methods.generateRefreshToken = function () {
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresin: process.env.REFRESH_TOKEN_EXPIRY,
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
     }
   );
 };
