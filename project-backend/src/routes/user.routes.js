@@ -1,6 +1,10 @@
 import { Router } from "express";
-import userRegister from "../controllers/user.controller.js";
+import userRegister, {
+  userLogin,
+  userLogout,
+} from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { verifyJwt } from "../middlewares/auth.middleware.js";
 const router = Router();
 const cpUpload = upload.fields([
   { name: "avatar", maxCount: 1 },
@@ -8,4 +12,8 @@ const cpUpload = upload.fields([
 ]); //this will upload only one avatar and one coverimage
 
 router.route("/register").post(cpUpload, userRegister);
+router.route("/login").post(userLogin);
+
+//Secured Routes
+router.route("/logout").post(verifyJwt, userLogout);
 export default router;

@@ -19,7 +19,7 @@ const uploadOnCloudinary = async function (localFilePath) {
       // height: 500,  // Transform the image: auto-crop to square aspect_ratio
     });
     //console.log("file is uploaded on cloudinary", await response.url);
-    fs.unlink(filePath, (err) => {
+    fs.unlink(localFilePath, (err) => {
       if (err) {
         console.error(`Error deleting file: ${err.message}`);
         return;
