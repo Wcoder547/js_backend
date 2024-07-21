@@ -309,6 +309,81 @@ const updateuserAvatar = AsyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, updatedAvatar, "avatar successfully updated"));
 });
+
+const getuserChannelProfile = AsyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  if (!username) {
+    throw new ApiError(400, "cannot get username ");
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subScriptions", //schema name
+        localField: "_id", //subscriber_id
+        foreignField: "channel", //channel
+        as: "totalSubscriber", //result
+      },
+    },
+    {
+      $lookup: {
+        from: "subScriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        //addfields use for adding a fields on basis some operations
+        subscriberCount: {
+          $size: "$totalSubscriber",
+        },
+        subscribedtoCount: {
+          $size: "$subscribedTo",
+        },
+        isSubscriber: {
+          $cond: {
+            if: { $in: [req.user?._id, "$totalSubscriber.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+
+    {
+      $project: {
+        fullname: 1,
+        username: 1,
+        email: 1,
+        avatar: 1,
+        coverimage: 1,
+        subscriberCount: 1,
+        subscribedtoCount: 1,
+        isSubscriber: 1,
+      },
+    },
+  ]);
+
+  console.log(channel);
+  if (!channel?.length) {
+    throw new ApiError(400, "user channel does not exisist");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, channel, "user channel data fetch successfully")
+    );
+});
+
 export {
   userRegister,
   userLogin,
@@ -319,4 +394,5 @@ export {
   updateAccountDetails,
   updateuserAvatar,
   updateuserCovwer,
+  getuserChannelProfile,
 };
