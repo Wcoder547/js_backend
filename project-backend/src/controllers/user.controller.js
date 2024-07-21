@@ -4,6 +4,7 @@ import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const userRegister = AsyncHandler(async (req, res) => {
   //   res.status(200).json({
@@ -384,6 +385,61 @@ const getuserChannelProfile = AsyncHandler(async (req, res) => {
     );
 });
 
+const getWatchHistory = AsyncHandler(async (req, res) => {
+  //req.user?._id //it return us a string not a id...behind the seen string is coverted to moongodb id
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: mongoose.Types.ObjectId(req.user?._id), //aggregation pipeline send the data as it is wrriten
+      },
+    },
+    {
+      $lookup: {
+        from: " videos", // destination ,
+        localField: "watchhistory",
+        foreignField: "_id",
+        as: "watchhistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullname: 1,
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        user[0].watchhistory,
+        "user watchhistory successfully fetched"
+      )
+    );
+});
+
 export {
   userRegister,
   userLogin,
@@ -395,4 +451,5 @@ export {
   updateuserAvatar,
   updateuserCovwer,
   getuserChannelProfile,
+  getWatchHistory,
 };
