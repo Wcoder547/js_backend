@@ -4,7 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 import { like } from "../models/like.models.js";
 import { video } from "../models/video.models.js";
-import { subscription } from "../models/subscription.models.js";
+import { subScription } from "../models/subscription.models.js";
 
 const getChannelStats = AsyncHandler(async (req, res) => {
   // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.

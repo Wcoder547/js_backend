@@ -18,14 +18,6 @@ connectDb()
     console.log("MONGO DB CONNECTION FAILED !! ", err);
   });
 
-//routes imports
-
-import userRouter from "./routes/user.routes.js";
-
-//user routes
-
-app.use("/api/v1/users", userRouter);
-
 // import { DB_NAME } from "./constans";
 // (async () => {
 //   try {

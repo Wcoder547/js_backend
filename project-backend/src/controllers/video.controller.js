@@ -1,6 +1,6 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { video } from "../models/video.models.js";
-import { user } from "../models/user.models.js";
+import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
