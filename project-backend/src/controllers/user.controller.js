@@ -209,13 +209,15 @@ const refreshAccessToken = AsyncHandler(async (req, res) => {
 
 const chnageCurrentPassword = AsyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confirmPass } = req.body;
+
   if (!(newPassword === confirmPass)) {
     throw new ApiError(400, "please match the old and new password");
   }
-  const user = User.findById(req.user?._id);
+  const user = await User.findById(req.user?._id);
   if (!user) {
     throw new ApiError(401, "Unauthorized access");
   }
+
   const ispassMatched = await user.isPasswordCorrect(oldPassword);
   if (!ispassMatched) {
     throw new ApiError(
@@ -288,6 +290,9 @@ const updateuserCovwer = AsyncHandler(async (req, res) => {
     );
 });
 const updateuserAvatar = AsyncHandler(async (req, res) => {
+  console.log(req.files);
+  console.log(req.body);
+
   const avatarLocalPath = req.files?.path;
   if (!avatarLocalPath) {
     throw new ApiError(400, "avatar file is missing");
@@ -386,58 +391,75 @@ const getuserChannelProfile = AsyncHandler(async (req, res) => {
 });
 
 const getWatchHistory = AsyncHandler(async (req, res) => {
-  //req.user?._id //it return us a string not a id...behind the seen string is coverted to moongodb id
-  const user = await User.aggregate([
-    {
-      $match: {
-        _id: mongoose.Types.ObjectId(req.user?._id), //aggregation pipeline send the data as it is wrriten
+  try {
+    const user = await User.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(req.user?._id),
+        },
       },
-    },
-    {
-      $lookup: {
-        from: " videos", // destination ,
-        localField: "watchhistory",
-        foreignField: "_id",
-        as: "watchhistory",
-        pipeline: [
-          {
-            $lookup: {
-              from: "users",
-              localField: "owner",
-              foreignField: "_id",
-              as: "owner",
-              pipeline: [
-                {
-                  $project: {
-                    fullname: 1,
-                    username: 1,
-                    avatar: 1,
-                  },
+      {
+        $lookup: {
+          from: "videos",
+          let: { watchhistory: "$watchhistory" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$_id", "$$watchhistory"],
                 },
-              ],
-            },
-          },
-          {
-            $addFields: {
-              owner: {
-                $first: "$owner",
               },
             },
-          },
-        ],
+            {
+              $lookup: {
+                from: "users",
+                let: { ownerId: "$owner" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: ["$_id", "$$ownerId"],
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      fullname: 1,
+                      username: 1,
+                      avatar: 1,
+                    },
+                  },
+                ],
+                as: "owner",
+              },
+            },
+            {
+              $addFields: {
+                owner: {
+                  $arrayElemAt: ["$owner", 0],
+                },
+              },
+            },
+          ],
+          as: "watchhistory",
+        },
       },
-    },
-  ]);
+    ]);
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        user[0].watchhistory,
-        "user watchhistory successfully fetched"
-      )
-    );
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          user[0].watchhistory,
+          "User watch history successfully fetched"
+        )
+      );
+  } catch (error) {
+    return res
+      .status(500)
+      .json(new ApiResponse(500, null, error || "Server error"));
+  }
 });
 
 export {
