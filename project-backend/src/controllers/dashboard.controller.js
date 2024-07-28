@@ -50,7 +50,7 @@ const getChannelStats = AsyncHandler(async (req, res) => {
         },
       },
       {
-        $unwind: "$allvideo",
+        $unwind: "$allvideo", //for deconstruct the array mean if array[was,fah,tal] => was,fah,tal will give us
       },
       {
         $match: {
