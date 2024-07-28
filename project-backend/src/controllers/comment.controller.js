@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { comment } from "../models/comment.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -11,35 +11,39 @@ const getVideoComments = AsyncHandler(async (req, res) => {
     const { videoid } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
-    if (
-      isNaN(pageNumber) ||
-      isNaN(limitNumber) ||
-      pageNumber <= 0 ||
-      limitNumber <= 0
-    ) {
-      throw new ApiError(400, "invalid Page Or invalid Limit parameter");
+    if (!isValidObjectId(videoid)) {
+      throw new ApiError(400, "video ID not found!!");
     }
-    const skip = (pageNumber - 1) * limitNumber;
-    const foundedComments = await comment
-      .find({ video: videoid })
-      .limit(limitNumber)
-      .skip(skip)
-      .sort({ createdat: "-1" });
-    const totalComment = await comment.countDocuments({ videoid: videoid });
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        {
-          foundedComments,
-          currentPgae: pageNumber,
-          totalPage: Math.ceil(totalComment / limitNumber),
-          totalComment,
-        },
-        "successfully fetch all comments"
-      )
+
+    const comments = await comment.aggregatePaginate(
+      { video: videoid },
+      {
+        page: parseInt(page),
+        limt: parseInt(limit),
+        sort: createdAt("desc"),
+        customLabels: { docs: "comments" },
+      }
     );
+    // const pageNumber = parseInt(page, 10);
+    // const limitNumber = parseInt(limit, 10);
+    // if (
+    //   isNaN(pageNumber) ||
+    //   isNaN(limitNumber) ||
+    //   pageNumber <= 0 ||
+    //   limitNumber <= 0
+    // ) {
+    //   throw new ApiError(400, "invalid Page Or invalid Limit parameter");
+    // }
+    // const skip = (pageNumber - 1) * limitNumber;
+    // const foundedComments = await comment
+    //   .find({ video: videoid })
+    //   .limit(limitNumber)
+    //   .skip(skip)
+    //   .sort({ createdat: "-1" });
+    // const totalComment = await comment.countDocuments({ videoid: videoid });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, comments, "successfully fetch all comments"));
   } catch (error) {
     return res
       .status(500)
@@ -53,10 +57,10 @@ const addComment = AsyncHandler(async (req, res) => {
   try {
     const { videoid } = req.params;
     const { comment } = req.body;
-    if (!videoid) {
+    if (!isValidObjectId(videoid)) {
       throw new ApiError(400, "videoid Not found");
     }
-    if (!comment) {
+    if (!comment.trim()) {
       throw new ApiError(400, "comment Cannot Empty!!");
     }
     const foundVideo = await video.findById(videoid);
@@ -87,10 +91,10 @@ const updateComment = AsyncHandler(async (req, res) => {
   try {
     const { commentid } = req.params;
     const { newComment } = req.body;
-    if (!commentid) {
+    if (!isValidObjectId(commentid)) {
       throw new ApiError(400, "comment ID not found");
     }
-    if (!newComment) {
+    if (!newComment.trim()) {
       throw new ApiError(400, "new comment not found");
     }
     const updatedComment = await comment.findByIdAndUpdate(
@@ -119,7 +123,7 @@ const deleteComment = AsyncHandler(async (req, res) => {
   // TODO: delete a comment
   try {
     const { commentid } = req.params;
-    if (!commentid) {
+    if (!isValidObjectId(commentid)) {
       throw new ApiError(404, "comment ID Not found");
     }
 
