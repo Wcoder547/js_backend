@@ -14,14 +14,13 @@ function App() {
         console.error("error", err);
       });
   }, []);
-  
+
   return (
     <>
       {data.map((data, index) => (
         <div
           className="relative h-[400px] w-[300px] rounded-md mb-8"
-          key={data.id}
-        >
+          key={data.id}>
           <img
             src={data.image}
             className="z-0 h-full w-full rounded-md object-cover"
